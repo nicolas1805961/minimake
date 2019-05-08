@@ -1,23 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "parse.h"
 
 int main(int argc, char *argv[])
 {
+    struct parser *parser = malloc(sizeof(struct parser));
     int t = 0;
     int y = 0;
-    char rules[64][64];
-    for (int j = 0; j < argc; j++)
+    int return_token = 0;
+    for(int i = 0; i < 64; i++)
+        parser->rules[i] = malloc(64);
+    for (int j = 1; j < argc; j++)
     {
         if (!strncmp(argv[j], "-f", 2) || !strncmp(argv[j], "-h", 2))
             t++;
-        if (argv[j -1] && argv[j - 1][0] != '-')
+        if (argv[j -1] && argv[j - 1][0] != '-' && argv[j - 1][0] != '.' && argv[j - 1][0] != '/')
         {
-            strncpy(rules[y], argv[j], 64);
+            strncpy(parser->rules[y], argv[j], 64);
             y++;
         }
     }
-    if (t != 0)
+    parser->nb_rules = y;
+    if (t > 1)
     {
         printf("This is the help for minimake\n");
         return 0;
@@ -34,16 +39,16 @@ int main(int argc, char *argv[])
                     printf("This is the help for minimake\n");
                     return 0;
                 }
-                return parse(argv[i + 1], rules);
+                return parse(argv[i + 1], parser);
                 break;
             case 'h':
                 printf("This is the help for minimake\n");
                 return 0;
                 break;
             default:
-                int return_token = parse("makefile", rules);
+                return_token = parse("makefile", parser);
                 if (return_token != 0)
-                    return parse("Makefile", rules);
+                    return parse("Makefile", parser);
                 break;
             }
         }

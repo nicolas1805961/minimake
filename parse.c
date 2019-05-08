@@ -3,50 +3,100 @@
 #include <string.h>
 #include "parse.h"
 
-char *get_tokens(FILE *fp, char *tokens[], size_t size)
+int get_tokens(struct parser *parser)
 {
-    int i = 1;
-    char *line = NULL;
-    while (line = my_getline(fp))
-    {
-        char *ptr = strchr(line, ':');
-        if (ptr != NULL)
-        {   
-            char *temp;
-            char *target = strtok(line,':');
-            strncpy(tokens[0], target, 64);
-            while (i < size && temp = strtok(NULL, ' '))
-            {
-                strncpy(tokens[i], temp, 64);
-                i++;
-            }
-            return tokens;
-        }
-    } 
-}
-
-char *my_getline(FILE *fp)
-{
-    int x = 0;
-    char line[4096];
-    fgets(line, 4096, fp);
-    char *ptr = strchr(line, '\n');
+    size_t i = 1;
+    char *ptr = NULL;
+    ptr = strchr(parser->line, ':');
     if (ptr != NULL)
-        *ptr = '\0';
-    else
-    {
-        while (x != 0 && x != EOF)
-            x = getchar();
+    {   
+        char *temp = NULL;
+        char *target = strtok(parser->line,":");
+        strncpy(parser->tokens[0], target, 64);
+        while ((i < 64) && (temp = strtok(NULL, " ")))
+        {
+            strncpy(parser->tokens[i], temp, 64);
+            i++;
+        }
+        return 1;
     }
-    return line;
+    return 0;
+}
+int check_tab(struct parser *parser)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (parser->line[i] != ' ')
+            return 0;
+    }
+    if (parser->line[4] != ' ')
+        return 1;
+    return 0;
+}
+int my_getline(FILE *fp, struct parser *parser)
+{
+    parser->line = fgets(parser->line, 1024, fp);
+    if (parser->line == NULL)
+        return 0;
+    char *ptr1 = NULL;
+    if (!check_tab(parser) && (ptr1 = strchr(parser->line, '#')))
+        *ptr1 = '\0';
+    char *ptr2 = strchr(parser->line, '\n');
+    if (ptr2 != NULL)
+        *ptr2 = '\0';
+    return 1;
 }
 
-int parse(char *file, char *rules[])
+void parse_file(FILE *fp, struct parser *parser)
 {
-    char tokens[64][64];
-    FILE *fp = fopen(file, 'r');
+    int j = 0;
+    int u = 0;
+    while(my_getline(fp, parser))
+    {
+        /*if (u > parser->nb_rules)
+            return;*/
+        if (parser->line[0] == '\0')
+            continue;
+        if (!get_tokens(parser))
+        {
+            if (parser->nb_rules != 0 && parser->tokens[0] != parser->rules[u])
+                continue;
+            for (size_t t = 0; t < 4; t++)
+            {
+                for (size_t i = 0; i < strlen(parser->line); i++)
+                    parser->line[i] = parser->line[i + 1];
+            }
+            strncpy(parser->commands[j], parser->line, 1024);
+            printf("%s\n", parser->commands[j]);
+            j++;
+        }
+        else
+        {
+            if (j > 0)
+                u++;
+            j = 0;
+        }
+    }
+}
+int parse(char *file, struct parser *parser)
+{
+    parser->line = malloc(1024);
+    for (int i = 0; i < 64; i++)
+    {
+        parser->tokens[i] = malloc(64);
+        parser->commands[i] = malloc(1024);
+    }
+    FILE *fp = fopen(file, "r");
     if (fp == NULL)
         return 1;
-    get_tokens(fp, tokens, 64);
-    
+    parse_file(fp, parser);
+    for (int i = 0; i < 64; i++)
+        free(parser->tokens[i]);
+    for (int i = 0; i < 64; i++)
+        free(parser->commands[i]);
+    for (int i = 0; i < 64; i++)
+        free(parser->rules[i]);
+    free(parser->line);
+    free(parser);
+    return 0;
 }

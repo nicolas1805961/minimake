@@ -1,15 +1,15 @@
 CXX = gcc
-CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c99 -g -fsanitize=address
+CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c99 -fsanitize=address -g
 LDFLAGS =  -fsanitize=address
 
-SRC = main.c
+SRC = main.c parse.c
 OBJ = $(SRC:.cc=.o)
 EXEC = minimake
 
 all: $(EXEC)
 
 $(EXEC):  $(OBJ)
-	$(CXX) $(LDFLAGS) -o $@ $(OBJ) $(LBLIBS)
+	$(CXX) $(LDFLAGS) $(CXXFLAGS) -o $@ $(OBJ) $(LBLIBS)
 
 clean:
 	rm -rf $(OBJ) $(EXEC)
