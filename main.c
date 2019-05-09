@@ -5,10 +5,42 @@
 
 int main(int argc, char *argv[])
 {
+    int return_token = 0;
     struct parser *parser = malloc(sizeof(struct parser));
+    if (init_main(argc, argv, parser) > 1)
+        return display_help(parser);
+    for (int i = 0; i < argc; i++)
+    {
+        if (argv[i][0] == '-')
+        {
+            switch (argv[i][1])
+            {
+            case 'f':
+                return parse(argv[i + 1], parser);
+                break;
+            case 'h':
+                return display_help(parser);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    return_token = parse("makefile", parser);
+    if (return_token != 0)
+    {
+        parser = malloc(sizeof(struct parser));
+        for(int i = 0; i < 64; i++)
+            parser->rules[i] = malloc(64);
+        return parse("Makefile", parser);
+    }
+    return return_token;
+}
+
+int init_main(int argc, char *argv[], struct parser *parser)
+{
     int t = 0;
     int y = 0;
-    int return_token = 0;
     for(int i = 0; i < 64; i++)
         parser->rules[i] = malloc(64);
     for (int j = 1; j < argc; j++)
@@ -22,35 +54,14 @@ int main(int argc, char *argv[])
         }
     }
     parser->nb_rules = y;
-    if (t > 1)
-    {
-        printf("This is the help for minimake\n");
-        return 0;
-    }
-    for (int i = 0; i < argc; i++)
-    {
-        if (argv[i][0] == '-')
-        {
-            switch (argv[i][1])
-            {
-            case 'f':
-                if (argv[i][2] == 'h')
-                {
-                    printf("This is the help for minimake\n");
-                    return 0;
-                }
-                return parse(argv[i + 1], parser);
-                break;
-            case 'h':
-                printf("This is the help for minimake\n");
-                return 0;
-                break;
-            default:
-                return_token = parse("makefile", parser);
-                if (return_token != 0)
-                    return parse("Makefile", parser);
-                break;
-            }
-        }
-    }
+    return t;
+}
+
+int display_help(struct parser *parser)
+{
+    printf("This is the help for minimake\n");
+    free(parser);
+    for (int i = 0; i < 64; i++)
+        free(parser->rules[i]);
+    return 0;
 }
