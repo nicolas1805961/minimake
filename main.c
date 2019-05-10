@@ -47,7 +47,7 @@ int init_main(int argc, char *argv[], struct parser *parser)
     {
         if (!strncmp(argv[j], "-f", 2) || !strncmp(argv[j], "-h", 2))
             t++;
-        if (argv[j -1] && argv[j - 1][0] != '-' && argv[j - 1][0] != '.' && argv[j - 1][0] != '/')
+        if (argv[j - 1][0] != '-' && argv[j][0] != '-')
         {
             strncpy(parser->rules[y], argv[j], 64);
             y++;

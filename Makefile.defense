@@ -1,6 +1,8 @@
 all: foo
 
-foo: foo.o
-    gcc -o foo foo.o
-foo.o: foo.c
-    gcc -c foo.c
+foo: main.o parse.o
+    gcc -o foo main.o parse.o
+main.o: main.c
+    gcc -c main.c
+parse.o: parse.c
+    gcc -c parse.c
