@@ -5,6 +5,7 @@
 
 int main(int argc, char *argv[])
 {
+    /*swughi*/
     int return_token = 0;
     struct parser *parser = malloc(sizeof(struct parser));
     if (init_main(argc, argv, parser) > 1)
