@@ -2,7 +2,7 @@ CXX = gcc
 CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c99 -fsanitize=address -g
 LDFLAGS =  -fsanitize=address
 
-SRC = main.c parse.c
+SRC = main.c parse.c variable.c
 OBJ = $(SRC:.cc=.o)
 EXEC = minimake
 

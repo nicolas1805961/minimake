@@ -1,8 +1,10 @@
 #pragma once
 #include <stdio.h>
+#include <sys/types.h>
 
 struct parser
 {
+    struct variable_list *list;
     char *commands;
     char *rule_executed;
     char *tokens[64];
@@ -17,7 +19,8 @@ struct parser
 };
 
 int parse(char *file, struct parser *parser);
-int my_getline(struct parser *parser, int n);
+int my_getlines(struct parser *parser);
+int my_getline(struct parser *parser);
 int get_tokens(struct parser *parser, char *rule);
 int parse_file(struct parser *parser, char *rule);
 int check_tab(char *line);
@@ -37,3 +40,9 @@ int check_modification_date(struct parser *parser, char *token);
 int check_modification_date_loop(struct parser *parser);
 int check_proper(struct parser *parser, int flag, char *rule);
 int check_same(struct parser *parser, char *rule);
+void delete_c(char *command);
+int get_token_tool(struct parser *parser, char *target, char *line);
+int parse_tool(struct parser *parser);
+int parent_process(pid_t pid, int status);
+void copy_list(struct parser *dest, struct parser *src);
+void copy_list_no_alloc(struct parser *dest, struct parser *src);
