@@ -25,6 +25,7 @@ struct parser *copy_struct_no_alloc(struct parser *dest, struct parser *src)
     dest->nb_tokens = src->nb_tokens;
     dest->fp1 = src->fp1;
     dest->fp2 = src->fp2;
+    dest->flag = src->flag;
     return dest;
 }
 
@@ -54,6 +55,7 @@ struct parser *copy_struct(struct parser *src)
 {
     struct parser *dest = malloc(sizeof(struct parser));
     copy_list(dest, src);
+    dest->list2 = init();
     for (int i = 0; i < 64; i++)
         dest->rules[i] = malloc(64);
     dest->file = malloc(64);
@@ -76,6 +78,7 @@ struct parser *copy_struct(struct parser *src)
     dest->nb_tokens = src->nb_tokens;
     dest->fp1 = src->fp1;
     dest->fp2 = src->fp2;
+    dest->flag = src->flag;
     return dest;
 }
 int check_rule(char *line)
@@ -236,8 +239,10 @@ int search(struct parser *parser, char *rule)
     parser->fp2 = fd;
     while (my_getlines(parser))
     {
+        get_variable(parser, parser->list2);
         while (check_todo(parser->line1))
-            replace(parser, parser->line1, parser->list);
+            replace(parser, parser->line1, parser->list2);
+        delete_all(parser->list2);
         if (get_tokens(parser, rule))
             return 1;
     }
@@ -258,11 +263,16 @@ int check_modification_date_loop(struct parser *parser)
 {
     struct stat st;
     struct stat sp;
-    if (parser->nb_tokens == 1)
+    if (parser->nb_tokens == 1 && stat(parser->tokens[0], &st) == -1)
         return 1;
-    else if (!strncmp(parser->tokens[0], "all", 4))
+    else if (!stat(parser->tokens[0], &st) && parser->nb_tokens == 1 && !strncmp(parser->rule_executed, parser->tokens[0], 64))
+    {
+        printf("minimake: '%s' is up to date.", parser->rule_executed);
         return 0;
-    if (stat(parser->tokens[0], &st) == -1)
+    }
+    else if (!strncmp(parser->tokens[0], "all", 4) && parser->nb_tokens > 1)
+        return 0;
+    else if (stat(parser->tokens[0], &st) == -1)
         return 1;
     time_t target_md = st.st_mtime;
     for (int i = 0; i < parser->nb_tokens; i++)
@@ -286,6 +296,7 @@ int parse_file(struct parser *parser, char *rule)
                 setup_execution(parser, parser->tokens[0]);
             else
             {
+                parser->flag = 1;
                 struct parser *saved_parser = copy_struct(parser);
                 parse_file(parser, parser->tokens[i]);
                 parser = copy_struct_no_alloc(parser, saved_parser);
@@ -297,10 +308,15 @@ int parse_file(struct parser *parser, char *rule)
             setup_execution(parser, parser->tokens[0]);
         return 0;
     }
-    else
+    else if (parser->flag == 0)
     {
         printf("minimake: no rule to make target '%s'\n", rule);
         exit(1); 
+    }
+    else
+    {
+        printf("minimake: '%s' is up to date.", parser->rule_executed);
+        return 0;
     }
 }
 int is_main_rule(char *rule, struct parser *parser)
@@ -393,7 +409,8 @@ int parse(char *file, struct parser *parser)
     parser->file = malloc(64);
     parser->rule_executed = malloc(64);
     strncpy(parser->file, file, 64);
-    
+    parser->flag = 0;
+    parser->list2 = init();
     parser->line1 = malloc(1024);
     parser->line2 = malloc(1024);
     parser->commands = malloc(1024);
@@ -437,6 +454,7 @@ void free_function(struct parser *parser)
         free(parser->rules[i]);
     }
     free_list(parser->list);
+    free_list(parser->list2);
     free(parser->commands);
     free(parser->line1);
     free(parser->line2);

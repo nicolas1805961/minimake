@@ -144,27 +144,16 @@ void replace(struct parser *parser, char *line, struct variable_list *list)
     char *variable = get_left(line, &i, &j);
     char *right_init = get(parser, variable, list, &q);
     char *right = get_recursive_variable(parser, right_init, list);
+    shift(line, &i, j);
     if (right)
-    {
-        shift(line, &i, j);
         append(line, i, right);
-    }
     else
     {
         char *env = getenv(variable);
         if (env)
-        {
-            shift(line, &i, j);
             append(line, i, env);
-        }
         else
-        {
-            fprintf(stderr, "No corresponding value for variable '%s' found\n", variable);
-            free(variable);
-            if (q == 1)
-                free(right_init);
-            exit(1);
-        }
+            append(line, i, "");
     }
     free(variable);
     if (q == 1)
@@ -334,6 +323,7 @@ int check_variable(char *line)
     else
         return 0;
 }
+
 void get_variables(struct parser *parser, struct variable_list *list)
 {
     while (my_getlines(parser))
@@ -351,6 +341,22 @@ void get_variables(struct parser *parser, struct variable_list *list)
         strncpy(parser->line1, line, 1024);
         free(line);
     }
+}
+
+void get_variable(struct parser *parser, struct variable_list *list)
+{
+    char *line = malloc(1024);
+    strncpy(line, parser->line1, 1024);
+    if (check_variable(parser->line1))
+    {
+        char *left = strtok(parser->line1, "=");
+        truncate_right(left);
+        char *right = strtok(NULL, "\0");
+        truncate_left(right);
+        add(left, right, list);
+    }
+    strncpy(parser->line1, line, 1024);
+    free(line);
 }
 
 void truncate_right(char *line)

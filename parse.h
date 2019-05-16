@@ -5,12 +5,14 @@
 struct parser
 {
     struct variable_list *list;
+    struct variable_list *list2;
     char *commands;
     char *rule_executed;
     char *tokens[64];
     char *rules[64];
     int nb_rules;
     int nb_tokens;
+    int flag;
     char *line1;
     char *line2;
     char *file;

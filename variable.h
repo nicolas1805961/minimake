@@ -33,3 +33,4 @@ char *one_char_get_left(int *i, char *line);
 char *several_chars_get_left(int *i, int *j, char *line);
 void one_char_shift(char *line, int *i, int j);
 void several_chars_shift(char *line, int *i, int j);
+void get_variable(struct parser *parser, struct variable_list *list);
